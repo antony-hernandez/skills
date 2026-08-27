@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "spec",
+  "displayName": "Spec — refinamiento de Cambios Técnicos",
+  "version": "0.9.0",
+  "description": "Refina Cambios Técnicos y Preguntas de una Spec Técnica en Confluence contra FRD, Acta, el proyecto real (AGENTS/reglas) y el ecosistema tecnológico viable del repo.",
+  "author": {
+    "name": "Antony Hernandez",
+    "email": "antony.hernandez@atomchat.io",
+    "url": "https://github.com/antony-hernandez"
+  },
+  "repository": "https://github.com/antony-hernandez/skills",
+  "license": "MIT",
+  "keywords": [
+    "confluence",
+    "atlassian",
+    "spec",
+    "refinamiento",
+    "backend",
+    "documentacion"
+  ]
+}

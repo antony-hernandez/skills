@@ -1,0 +1,18 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "antony-skills",
+  "description": "Skills de proceso para trabajo de producto y backend en Atom: refinamiento de specs técnicas, y lo que venga después.",
+  "owner": {
+    "name": "Antony Hernandez",
+    "email": "antony.hernandez@atomchat.io",
+    "url": "https://github.com/antony-hernandez"
+  },
+  "plugins": [
+    {
+      "name": "spec",
+      "description": "Refina la sección de Cambios Técnicos de una Spec Técnica de Confluence contra su FRD y contra el codebase real.",
+      "source": "./plugins/spec",
+      "category": "workflow"
+    }
+  ]
+}
