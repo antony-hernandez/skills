@@ -42,6 +42,15 @@ tsc -p tsconfig.build.json --noEmit
 - **Prohibido** `jest <directorio>` — spawnea un worker por core y agota memoria. Un solo archivo spec está bien.
 - Preferir `npm test` con el path del spec concreto cuando aplique bajo mocha.
 
+### Lint y build
+
+- **La lista de archivos la da el diff, no una lista escrita a mano:** `git diff --name-only <base>...HEAD -- '*.ts'`. Si sale vacía, no hay nada que lintear — no se lintea el árbol "por si acaso".
+- **Lint de esos archivos, nunca del árbol.** `npx eslint <lista del diff>` — **sin `--fix`**. Los `npm run lint` de ambos repos llevan `--fix` y reescriben todo `src`, que es el comportamiento de formateo que el brief ya prohíbe.
+- **Build del proyecto después.** En `atom-cloudfunctions`: `npm run build:prod` (`tsc -p tsconfig.build.json && tsc-alias`) — emite artefactos, a diferencia del typecheck `--noEmit` ya documentado arriba; mantener ambos y decir qué atrapa cada uno. El `--noEmit` atrapa TS6138/TS6133/TS6192 bajo el tsconfig de producción sin compilar; `build:prod` confirma que el emit completo (incluyendo `tsc-alias`) termina limpio. Un build no puede acotarse a archivos cambiados — corre entero y corre al final.
+- **`atom`:** la configuración de build no es obvia — existen ocho (`build:dev`, `build:core`, `build:qa`, `build:prod`, …). No elegir una: confirmar cuál con el usuario; una configuración equivocada es mano levantada, no adivinanza.
+
+**"Sobre el diff" significa dos cosas distintas, y confundirlas produce una regla incumplible:** para lint es **alcance** — se lintea exactamente lo que el diff lista. Para build es **atribución** — `tsc` compila el proyecto entero, así que el build corre completo y lo que se acota es a quién se le imputa el error: solo cuenta si no reproduce en el commit base.
+
 Incluir estos comandos en los criterios de aceptación del brief; el coordinador los re-ejecuta al verificar.
 
 ## Convenciones de archivos

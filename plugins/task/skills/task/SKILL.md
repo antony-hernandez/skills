@@ -105,6 +105,8 @@ El coordinador re-ejecuta estos comandos al verificar — no confiar en el repor
 | **Criterios de aceptación** | Comandos con output crudo pegado |
 | **Levantar la mano** | Forma de `orca orchestration ask` cuando algo bloquee |
 
+**El writer es `cursor`.** `--agent claude` es el fallo — el modelo caro coordina, lee diffs, corre checks y decide; nunca genera código. Ese es todo el argumento de costo, y un dispatch que nombra `claude` gasta el dinero que el split existe para ahorrar.
+
 Cargar `references/orca.md` — secuencia de dispatch y supervisión.
 
 Esperar: `orca-ide orchestration check --wait --types worker_done,escalation,question --timeout-ms <n> --terminal <coordinator_handle>`.
@@ -117,7 +119,7 @@ Gate antes de commit — sesión nueva, no el worktree del código.
 
 1. **Brief sin conclusiones del coordinador** — commit, base, criterios verbatim, subtareas hermanas como datos crudos. Brief con conclusiones del coordinador devuelve conclusiones del coordinador.
 2. **Worktree detached** en el commit pusheado — `git worktree add --detach <path> <ref>`.
-3. **Filtro de deuda preexistente** — hallazgo rojo solo si no reproduce en commit base.
+3. **Filtro de deuda preexistente** — hallazgo rojo solo si no reproduce en commit base. Aplica también a lint y build: cualquier resultado rojo se corre contra el commit base antes de atribuirlo a este cambio — estos repos arrastran fallos preexistentes, y un rojo no es evidencia por sí solo. Usar `git show` y `git worktree add --detach`, nunca `git stash`.
 
 Formato: `path:line [BLOQUEANTE|ALTO|MEDIO|BAJO]` o "revisado sin hallazgos". Coordinador re-verifica cada hallazgo y cada fila — incluidas aquellas donde el veredicto contradice su propio criterio.
 
@@ -153,6 +155,7 @@ Si el coordinador se interrumpió, retomar con:
 | FRD nombrado pero no abierto | Se pierden ACs de producto |
 | Saltar Propuesta Técnica | Se pierde orden entre HUs |
 | "SoT" no enlazada por la Propuesta | Autoridad autodeclarada |
+| Despachar a `claude` en vez de `cursor` | Gasta el modelo caro en código que el split existe para evitar |
 | Código en el working tree del coordinador | Rompe aislamiento Orca |
 | `Tareas Técnicas` sobre la tabla | Pierde pseudocódigo y Actualidad |
 | Tabla como techo de alcance | El FRD autoriza; la tabla orienta |
