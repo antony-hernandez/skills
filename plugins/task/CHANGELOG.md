@@ -2,6 +2,15 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.4.0] — 2026-09-07
+
+### Changed
+- Fase 7 closes against FRD criteria **this subtask covers**, not the whole FRD; closing table gains owner column (`Dueño si no cumple`); unmet criteria owned by sibling subtasks are hand-offs, not failures.
+- Fase 6 gains delegated code review method: brief without coordinator conclusions, fresh detached worktree at pushed commit, pre-existing-debt filter against base commit; coordinator re-verifies every finding and criteria row.
+- `No tocar` git prohibitions now name safe alternatives: `git show` to read/compare commits, `git worktree add --detach` to work against another ref.
+- Pre-flight and dispatch brief strengthen CodeGraph-before-grep: `codegraph explore`, `projectPath` filtering for mixed workspace indexes, index age check.
+- Closing and resume checklist add stale worktree list/prune step (closing only, never mid-work).
+
 ## [0.3.0] — 2026-09-07
 
 ### Changed
