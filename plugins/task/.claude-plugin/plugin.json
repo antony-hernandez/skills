@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/plugin.schema.json",
+  "name": "task",
+  "displayName": "Task — implementación de subtareas de desarrollo",
+  "version": "0.3.0",
+  "description": "Coordina una subtarea de Jira tipo Development contra la Spec Técnica refinada: lee el árbol de documentos, verifica filas, convierte criterios en comandos y despacha workers vía Orca orchestration.",
+  "author": {
+    "name": "Antony Hernandez",
+    "email": "antony.hernandez@atomchat.io",
+    "url": "https://github.com/antony-hernandez"
+  },
+  "repository": "https://github.com/antony-hernandez/skills",
+  "license": "MIT",
+  "keywords": [
+    "jira",
+    "atlassian",
+    "implementacion",
+    "development",
+    "backend",
+    "frontend"
+  ]
+}

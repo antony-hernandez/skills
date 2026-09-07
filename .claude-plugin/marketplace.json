@@ -13,6 +13,12 @@
       "description": "Refina la sección de Cambios Técnicos de una Spec Técnica de Confluence contra su FRD y contra el codebase real.",
       "source": "./plugins/spec",
       "category": "workflow"
+    },
+    {
+      "name": "task",
+      "description": "Implementa una subtarea de Jira tipo Development contra la Spec Técnica refinada, con reglas de blast radius y verificación previa al código.",
+      "source": "./plugins/task",
+      "category": "workflow"
     }
   ]
 }
