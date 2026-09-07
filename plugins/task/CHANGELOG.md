@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.5.0] — 2026-09-07
+
+### Changed
+- Orca dispatch sequence and honest-supervision rules moved verbatim to `references/orca.md`; Fase 6 keeps a short pointer and the one-line `check --wait` command.
+- Pre-flight CodeGraph rules replace index-age check: read both `status` lines (content vs engine version), `sync` does not replace full `index`, each worktree gets its own index at creation (`codegraph init` before dispatch, never during a worker run).
+- Added common-error rows for wrong-tree index queries and judging an index by file date; warn never to stage `.codegraph/` inside a worktree (~201MB, often untracked).
+
 ## [0.4.0] — 2026-09-07
 
 ### Changed

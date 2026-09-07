@@ -25,7 +25,13 @@ Si el usuario pasa solo la Historia, pedir cuál subtarea implementar.
 
 **Assignee:** si está asignada a otra persona, avisar y **seguir**.
 
-Verificar contra la rama base de la spec, no `develop` por defecto. Con `.codegraph/`, **CodeGraph antes que grep**: `codegraph explore "<pregunta o símbolos>"` devuelve fuente y call paths en una llamada — lo que Fase 4 necesita; grep no sigue llamadas. No todo repo está indexado: `atom-cloudfunctions` tiene índice propio; `atom` no — filtrar por `projectPath` en el índice del workspace root. Confirmar índice y antigüedad antes de confiar. El brief debe decir lo mismo al worker.
+Verificar contra la rama base de la spec, no `develop` por defecto. Con `.codegraph/`, **CodeGraph antes que grep**: `codegraph explore` devuelve fuente y call paths en una llamada. Filtrar por `projectPath` cuando el workspace mezcla repos (`atom-cloudfunctions` indexado; `atom` no).
+
+- **Correr `codegraph status <repo>` y leer ambas líneas.** `✓ Index is up to date` = contenido; `⚠ built by an earlier version` = eje aparte. No juzgar por fecha de archivo — un índice de 9 días midió actual con 27.000 aristas ocultas por la advertencia de versión.
+- **`sync` no reemplaza `index`.** ~1s, solo deriva de contenido; la advertencia de versión solo se limpia con rebuild completo.
+- **Worktree: índice propio al crearse.** `codegraph init` — 17.8s, 2.26GB pico, 201MB — antes de despachar, nunca durante un worker. **Nunca consultar el índice del checkout principal:** otro árbol, respuesta limpia y equivocada.
+
+El brief debe decir lo mismo al worker.
 
 **Antes de cada pasada de auditoría:** confirmar rama y último commit (`git branch --show-current`, `git log -1 --oneline`). Un worktree Orca puede revertirse a otra rama entre pasadas — greps contra el árbol equivocado reportan archivos inexistentes.
 
@@ -52,7 +58,7 @@ PRD → FRD → Propuesta Técnica → Spec Técnica → Subtarea Jira
 
 Página "SoT" o "Acta" **no entra** salvo que la Propuesta Técnica la enlace.
 
-**Precedencia:** FRD > Propuesta Técnica > Spec > Jira. Si Propuesta Técnica y Spec discrepan, **gana la Propuesta Técnica** — reportar en ambas direcciones. Si FRD y cualquier nivel inferior discrepan, **gana el FRD**.
+**Precedencia:** FRD > Propuesta Técnica > Spec > Jira. Propuesta gana sobre Spec; FRD gana sobre todos — reportar conflictos.
 
 ## Fase 3 — Rutear
 
@@ -73,7 +79,7 @@ EXISTE PARCIAL  → solo el delta
 
 Si `Actualidad` está desmentida: **parar y reportar — no despachar**. No adaptar ni improvisar.
 
-**Alcance:** si el FRD queda satisfecho, archivos extra a los de la tabla son válidos. Lo que sí exige levantar la mano son **paths que rompen a otros** — componentes compartidos, design tokens, contratos publicados (DTOs de API, schemas Firestore, eventos publicados) — aunque la fila no los nombre.
+**Alcance:** FRD satisfecho permite archivos extra. Levantar la mano en paths compartidos — componentes, design tokens, contratos publicados (DTOs de API, schemas Firestore, eventos publicados) — aunque la fila no los nombre.
 
 ## Fase 5 — Criterios ejecutables
 
@@ -81,7 +87,7 @@ Cada `Criterio de Aceptación` del ticket → **comando con output crudo pegado*
 
 **Buscar en el FRD** criterios de aceptación **sin fila correspondiente** en Cambios Técnicos — también se convierten en comandos aquí.
 
-El tope de 9 es por dispatch, no por subtarea. Si los criterios del ticket más los del FRD pasan de 9, **partir el dispatch** por grupo de filas en vez de recortar criterios: un criterio que se cae del brief es un criterio que nadie verifica.
+El tope de 9 es por dispatch: si ticket + FRD pasan de 9, **partir dispatch** por grupo de filas — un criterio que se cae del brief es un criterio que nadie verifica.
 
 Sin comando → **levantar la mano**, no despachar. Si choca con *Do not touch*, gana la prohibición.
 
@@ -99,45 +105,32 @@ El coordinador re-ejecuta estos comandos al verificar — no confiar en el repor
 | **Criterios de aceptación** | Comandos con output crudo pegado |
 | **Levantar la mano** | Forma de `orca orchestration ask` cuando algo bloquee |
 
-### Secuencia Orca
+Cargar `references/orca.md` — secuencia de dispatch y supervisión.
 
-1. Resolver CLI: **`orca-ide` en Linux fuera de un terminal Orca** — nunca `orca` a secas (es el lector de pantalla GNOME). Cargar primero: `orca-ide skills get orchestration`.
-2. Registrar el repo: `orca-ide repo add --path <repo>` — sin esto el selector de worktree falla con `selector_not_found`.
-3. `run-create` → `task-create` → `worker-start --task <id> --worktree <selector> --agent cursor --model <id> --from <coordinator_handle>`.
-   El coordinador debería correr **dentro de un terminal Orca**, donde Orca resuelve el emisor solo y `--from` se omite. Desde fuera —una sesión de Claude Code, por ejemplo— no hay identidad de emisor y `worker-start` falla con `no_active_sender_terminal`: pasar el `coordinator_handle` que devolvió `run-create`. El binding del Run no sobrevive la sesión — crear Run nuevo, no rebindear desde fuera.
-4. Esperar: `orca-ide orchestration check --wait --types worker_done,escalation,question --timeout-ms <n> --terminal <coordinator_handle>`. `check` toma `--terminal`, no `--from`.
-5. **Pipear solo stdout.** `check --json` imprime un JSON en stdout y keepalives en stderr; `2>&1 | parser` falla con `Extra data: line 2`.
-6. Responder `question` con `orca-ide orchestration reply --id <msg_id> --body <answer>`, luego `check --ack <delivery_id>` y seguir esperando.
-7. Liberar worker terminado: `worker-release --dispatch <id>`.
+Esperar: `orca-ide orchestration check --wait --types worker_done,escalation,question --timeout-ms <n> --terminal <coordinator_handle>`.
 
-### Supervisión honesta
-
-- Un timeout de `check --wait` es **checkpoint, no fallo**. Tareas de código corren 15–60 minutos — nunca matar ni reiniciar un worker por silencio.
-- Orca pega el brief en el input del agente pero **no siempre lo envía**. Un worker con brief pendiente parece pensando — mismo `terminal: running`, mismo silencio. Leer el tail con `worker-read --dispatch <id>`; si el brief está pendiente, enviarlo con `orca-ide terminal send --terminal <handle> --enter`.
-- `worker: failed` con `terminal: running` y `liveness: live` **no prueba fallo**. Orca marca failed por timeout de readiness y vuelve a `succeeded` cuando corre el trabajo. Supervisar bus de mensajes **más** tail del terminal, nunca el bus solo.
-
-Re-ejecutar ACs tras `worker_done`. Commits: **uno por feature**, no uno por task, si el usuario pide commits.
+Re-ejecutar ACs tras `worker_done`. Commits: **uno por feature**, no uno por task, si el usuario pide commits. Nunca stagear el índice `.codegraph/` dentro de un worktree — no está en `.gitignore` y son ~201MB.
 
 ### Code review despachado
 
-Gate antes de commit — sesión nueva, no el worktree donde se escribió el código.
+Gate antes de commit — sesión nueva, no el worktree del código.
 
-1. **Brief sin conclusiones del coordinador.** Lleva commit y base, criterios del ticket con alcance/fuera de alcance verbatim, criterios FRD y spec verbatim, y reparto de subtareas hermanas como datos crudos. No lleva filas obsoletas ni hallazgos previos. Brief con conclusiones del coordinador devuelve conclusiones del coordinador.
-2. **Worktree propio, detached en el commit pusheado** — `git worktree add --detach <path> <ref>`.
-3. **Filtro de deuda preexistente.** Todo hallazgo rojo se corre también contra el **commit base**; se reporta solo si **no** reproduce ahí. Un hallazgo cuenta solo cuando no aparece en la base — separa lo introducido por el cambio de deuda heredada.
+1. **Brief sin conclusiones del coordinador** — commit, base, criterios verbatim, subtareas hermanas como datos crudos. Brief con conclusiones del coordinador devuelve conclusiones del coordinador.
+2. **Worktree detached** en el commit pusheado — `git worktree add --detach <path> <ref>`.
+3. **Filtro de deuda preexistente** — hallazgo rojo solo si no reproduce en commit base.
 
-Devuelve hallazgos con comando y output crudo, más tabla criterio-vs-evidencia. Formato: `path:line [BLOQUEANTE|ALTO|MEDIO|BAJO]` o "revisado sin hallazgos". El coordinador re-verifica cada hallazgo y cada fila — incluidas donde el veredicto contradice su propio criterio.
+Formato: `path:line [BLOQUEANTE|ALTO|MEDIO|BAJO]` o "revisado sin hallazgos". Coordinador re-verifica cada hallazgo y cada fila — incluidas aquellas donde el veredicto contradice su propio criterio.
 
 ## Fase 7 — Cierre
 
-La HU **no está hecha** con tests de fila verdes. Cerrar con tabla de criterios vs evidencia — **los criterios FRD que cuentan son los que cubre esta subtarea**, no el FRD entero.
+La HU **no está hecha** con tests de fila verdes. Tabla criterios vs evidencia — **solo criterios FRD que cubre esta subtarea**.
 
 | Criterio | Veredicto | Dueño si no cumple |
 |---|---|---|
 
-Veredictos: `CUMPLE` / `NO CUMPLE` / `fuera de alcance` / `no verificable en el repo`. Criterio no cumplido lleva dueño — subtarea hermana o `Confluence, no código`. Dueño hermano = **hand-off, no fallo**. Cierre cuando lo que cubre esta subtarea está satisfecho y lo fuera de alcance tiene dueño.
+Veredictos: `CUMPLE` / `NO CUMPLE` / `fuera de alcance` / `no verificable en el repo`. Dueño hermano = hand-off, no fallo. Cierre cuando lo que cubre esta subtarea está satisfecho y lo de afuera tiene dueño.
 
-Reportar: filas despachadas, saltadas, desvíos FRD/spec/ticket, manos levantadas.
+Reportar: filas despachadas, saltadas, desvíos, manos levantadas.
 
 **Worktrees:** al cerrar — nunca durante el trabajo — listar y podar worktrees viejos acumulados de tickets anteriores.
 
@@ -170,6 +163,8 @@ Si el coordinador se interrumpió, retomar con:
 | Auditar sin confirmar rama | Greps contra árbol equivocado |
 | Omitir prohibición git en No tocar | Worker puede destruir trabajo |
 | Matar worker por timeout de check | Trabajo largo es normal |
+| Consultar índice del checkout principal desde un worktree | Otro árbol — respuesta limpia y equivocada |
+| Juzgar índice por fecha del archivo | `status` y versión del motor son ejes independientes |
 
 ## Cuándo no usar
 
