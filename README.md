@@ -7,6 +7,7 @@ Also usable from Cursor by syncing this repo (see local install notes below).
 | Plugin | Version | What it does |
 |---|---|---|
 | [`spec`](plugins/spec) | 0.9.0 | Refines the Technical Changes section of a Confluence Spec against its FRD, the real project, and the repo’s viable tech stack |
+| [`task`](plugins/task) | 0.1.0 | Implements a Jira Development subtask against the refined Spec — locate contract, verify codebase, build in order, report drift |
 
 ## Install (Claude Code)
 
