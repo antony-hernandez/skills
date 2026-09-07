@@ -2,6 +2,13 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.6.0] — 2026-09-07
+
+### Changed
+- Fase 6 names the writer as `cursor` and `--agent claude` as the failure — the expensive model coordinates and never generates code; added common-error row for wrong-agent dispatch.
+- Pre-existing-debt filter now covers lint and build, not only delegated code review: any red result is run against the base commit before attribution (`git show`, `git worktree add --detach`, never `git stash`).
+- Backend reference gains lint-and-build gate: `npx eslint` on changed files without `--fix` (both repos' `npm run lint` carries `--fix`), `npm run build:prod` for `atom-cloudfunctions` alongside the existing `--noEmit` typecheck, and raised-hand rule for `atom`'s multiple build configurations.
+
 ## [0.5.0] — 2026-09-07
 
 ### Changed
