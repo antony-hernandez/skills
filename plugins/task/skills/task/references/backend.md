@@ -53,6 +53,41 @@ tsc -p tsconfig.build.json --noEmit
 
 Incluir estos comandos en los criterios de aceptación del brief; el coordinador los re-ejecuta al verificar.
 
+### Specs: uno por uno y conteo de aserciones
+
+Correr **cada** spec **por separado** y contar sus aserciones — el coordinador, no el worker, define la lista desde el diff de specs:
+
+```
+npm run test:one -- <ruta/al/spec>
+grep -c "expect(" <ruta/al/spec>
+```
+
+Un implementador puede dejar un spec verde **borrando** `expect(`; el conteo lo atrapa sin juicio humano.
+
+**Caída por archivo no es prueba de borrado:** los tests se mueven cuando una clase se parte. Antes de levantar la mano: correr el total de la suite y buscar los títulos que faltan en los demás specs. Caso real: 10→7 en un archivo eran tres tests que migraron a un spec nuevo con títulos idénticos — el total de la suite no cambió.
+
+### Convenciones: greps que corre el coordinador
+
+Sobre **cada archivo de producción** del cambio (misma lista derivada del diff, no la del worker):
+
+- Anotaciones y casts `any`: `:\s*any\b|\bas any\b|<any>`
+- `interface` o `type` declarados inline fuera del archivo de contratos del módulo
+- Literales string que ya existen como miembro de un enum del repo
+- Casts restantes (`as Tipo`, `<Tipo>`, etc.)
+- Comentarios — un comentario debe decir **por qué**, nunca repetir lo que ya dice el código
+
+### Tipos: no apilar casts
+
+Nunca resolver un error de tipo con **otro** cast. Si al quitar un cast aparece un desajuste, no forzarlo con un segundo cast ni rearmar el objeto a mano: dejar el error y reportar cuál es la incompatibilidad real. Un cast puede esconder un desajuste genuino — o no esconder nada: un `as any` quitado resultó ser solo un alias del mismo tipo.
+
+### Logs y salidas silenciosas
+
+Auditar qué llevan los logs: **cada** salida silenciosa registra su razón, y el payload lleva **solo ids y booleanos** — nunca un objeto cliente, conversación o plantilla. Las entidades no deben llegar a Cloud Logging.
+
+### Inyección en constructor vs métodos estáticos
+
+La inyección en constructor es para **instancias**, no para llegar a métodos estáticos. No inyectar `typeof Clase` para llamar un estático; repositorios y funciones libres se invocan directo. Solo colaboradores que se **instancian** van en el constructor. En specs, stubear estáticos con `sinon.stub(Clase, "metodo")` y `restore` al terminar.
+
 ## Convenciones de archivos
 
 Interfaces, types, helpers y constants viven en archivos propios con nombre `name.kind.ts` (ej. `user.interface.ts`, `status.constant.ts`). Preferir clases sobre funciones libres.

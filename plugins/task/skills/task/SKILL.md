@@ -93,6 +93,18 @@ Sin comando → **levantar la mano**, no despachar. Si choca con *Do not touch*,
 
 El coordinador re-ejecuta estos comandos al verificar — no confiar en el reporte del worker.
 
+### Cómo verifica el coordinador
+
+**Conjunto de archivos:** volver a correr cada check sobre **todo el archivo de producción del cambio**, no sobre la lista que reportó el worker. Un worker que arma su propia lista puede omitir un archivo; el coordinador deriva el conjunto del diff (`git diff --name-only <base>...HEAD` filtrado a producción) y ejecuta **cada** check sobre **todo** ese conjunto.
+
+**Deuda heredada:** el filtro contra el commit base no es “rojo en base, entonces ignorar”. Solo excusa el código que **no tocamos** en este cambio: si el diff toca un archivo, el cambio **se hace cargo** de ese archivo. Deuda que solo se movió de sitio aparece como líneas nuevas en el diff — decírselo explícito al revisor, porque se lee como código nuevo mal escrito cuando no lo es.
+
+**Hallazgo de clase:** cuando un revisor señala **una** instancia de un patrón (literal mágico, `any`, comentario que repite el código, etc.), **barrer todo el diff de producción** por esa clase **antes** de responder. Excluir fixtures de spec del barrido — una primera pasada que los mezcla genera ruido y hay que rehacerla. Clasificar lo que devuelve el barrido en: accionable, legítimo (texto de log, literales propios de un enum, checks `typeof`), e identificado pero **deliberadamente no tocado** (nombrar dónde debería vivir eventualmente).
+
+**Commits por riesgo, no por cronología:** archivos nuevos en un commit; archivos preexistentes tocados en otro, para que el revisor pueda leer solo el segundo y juzgar riesgo de regresión.
+
+**Reescribir historia de un PR abierto** (squash, reorder, amend masivo) es **force-push** y lleva protocolo propio: **preguntar primero**; guardar el SHA pre-reescritura; demostrar que el árbol no cambió con `git diff <backup> HEAD` devolviendo vacío; empujar con `--force-with-lease`, nunca `--force`; avisar que comentarios inline de review sobre SHAs viejos pueden quedar huérfanos. Una corrección a un commit ya publicado entra como `--fixup`, no como commit nuevo suelto.
+
 ## Fase 6 — Despachar
 
 **No escribir código en el working tree.** Cada dispatch lleva un brief con cinco partes obligatorias:

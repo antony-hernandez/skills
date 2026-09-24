@@ -2,6 +2,12 @@
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning: [SemVer](https://semver.org/).
 
+## [0.7.0] — 2026-09-24
+
+### Changed
+- Coordinator verification discipline: re-run every check over the full production file set derived from the diff (not the worker’s list); inherited debt excuses only code the change did not touch; class-wide sweeps in the production diff when a reviewer finds one instance (fixtures excluded); risk-split commits; open-PR squash protocol (`--force-with-lease`, backup SHA, empty tree proof, orphaned inline comments, `--fixup` for corrections).
+- Backend reference: per-spec `test:one` plus `expect(` assertion counts; moved-tests caveat before alleging deletion; coordinator-run convention greps over production files; no cast-stacking on type errors; Cloud Logging payload audit (ids/booleans only); constructor injection for instances, statics via `sinon.stub`/`restore`.
+
 ## [0.6.0] — 2026-09-07
 
 ### Changed
